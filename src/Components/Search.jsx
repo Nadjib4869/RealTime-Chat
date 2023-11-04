@@ -79,7 +79,7 @@ export default function Search() {
   return (
     <div className='search border-b border-b-gray-500'>
       <div className="searchForm p-2.5">
-        <input value={userName} onKeyDown={handleKey} onChange={e => setUserName(e.target.value)} type="text" placeholder='Find a user' className='bg-transparent text-white' />
+        <input value={userName} onKeyDown={handleKey} onChange={e => setUserName(e.target.value)} type="text" placeholder='Find a user' className='bg-transparent text-white outline-none' />
       </div>
       {err !== '' && <p className='text-red-500'>{err}</p>}
       {user && <div onClick={handleSelect} className="userChat p-2 flex items-center gap-10 text-white cursor-pointer hover:bg-[#2f2d52]">

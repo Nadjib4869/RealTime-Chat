@@ -11,25 +11,32 @@ import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
 export default function Input() {
   const [text, setText] = useState('');
   const [img, setImg] = useState(null);
+  const [err, setErr] = useState('');
 
   const {currentUser} = useContext(AuthContext);
   const {data} = useContext(ChatContext);
 
 
   const handleSend = async () => {
-    
+
+    if (text === '' && img === null) {
+      return;
+    }
+
     if(img){
       const storageRef = ref(storage, uuid());
 
       const uploadTask = uploadBytesResumable(storageRef, img);
 
-      uploadTask.on(
+      uploadTask.on('state_changed',
+        null,
         (error) => {
+          setErr(error.message)
           //TODO:Handle Error
         },
         () => {
           getDownloadURL(uploadTask.snapshot.ref).then(async (downloadURL) => {
-            await updateDoc(doc(db, "chats", data.chatId), {
+              await updateDoc(doc(db, "chats", data.chatId), {
               messages: arrayUnion({
                 id: uuid(),
                 text,
@@ -46,7 +53,7 @@ export default function Input() {
         messages: arrayUnion({
           id: uuid(),
           text,
-          sender: currentUser.uid,
+          senderId: currentUser.uid,
           date: Timestamp.now()
         })
       })
@@ -59,7 +66,7 @@ export default function Input() {
       [data.chatId + ".date"]: serverTimestamp(),
     });
 
-    await updateDoc(doc(db, "userChats", data.user.uid), {
+     await updateDoc(doc(db, "userChats", data.user.uid), {
       [data.chatId + ".lastMessage"]: {
         text,
       },
@@ -75,9 +82,11 @@ export default function Input() {
       handleSend();
     }
   };
+  
 
   return (
     <div className='input h-12 bg-white p-2 flex items-center justify-between'>
+      {err !== '' && <p className='text-red-500'>{err}</p>}
       <input value={text} onKeyDown={handleEnter} onChange={e=>setText(e.target.value)} type="text" placeholder='Tap a Message...' className='w-full text-lg text-[#2f2d52] outline-none' />
       <div className="send flex items-center">
         <img src={Attach} alt="attach icon" className='h-6 cursor-pointer' />
